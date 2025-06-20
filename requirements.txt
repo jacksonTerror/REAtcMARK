@@ -1,0 +1,4 @@
+timecode>=1.4.1
+sounddevice>=0.4.6
+soundfile>=0.12.0
+PyQt6>=6.4.0 

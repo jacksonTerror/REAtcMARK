@@ -1,0 +1,9 @@
+SMPTE Detection Report
+===================
+
+Audio File: 2025.06.18_SMPTE-test.wav
+Frame Rate: 30 fps
+
+Detected Markers:
+00:00:24:00 - marker 1
+00:04:18:00 - marker 3
