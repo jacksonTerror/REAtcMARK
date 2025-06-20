@@ -1,2 +1,0 @@
-marker 1
-marker 3
