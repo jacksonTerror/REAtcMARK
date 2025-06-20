@@ -664,17 +664,22 @@ class MainWindow(QMainWindow):
             json.dump(config, f)
             
     def select_audio_file(self):
-        """Open file dialog to select audio file"""
+        """Open a dialog to select an audio file"""
+        last_dir = self.config.get("last_audio_dir", str(Path.home()))
+        
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Select Audio File",
-            "",
-            "Audio Files (*.wav *.aif *.aiff);;All Files (*.*)"
+            last_dir,
+            "Audio Files (*.wav *.mp3);;WAV Files (*.wav);;MP3 Files (*.mp3);;All Files (*.*)"
         )
+        
         if file_path:
-            self.update_path_display(self.file_path_label, file_path)
             self.current_audio_file_full_path = file_path
-            self.log_text.append(f"Selected audio file: {Path(file_path).name}")
+            self.config["last_audio_dir"] = os.path.dirname(file_path)
+            self._update_audio_path_label(file_path)
+            self.save_config()
+            self.start_btn.setEnabled(self.is_ready_to_process())
             
     def select_mapping_file(self):
         """Open file dialog to select SMPTE mapping file"""
@@ -931,6 +936,22 @@ class MainWindow(QMainWindow):
         """Update the mapping path label and the internal full path variable."""
         self.update_path_display(self.mapping_path_label, path)
         self.current_mapping_file_full_path = path
+        # Update button state whenever mapping path changes
+        self.start_btn.setEnabled(self.is_ready_to_process())
+        
+    def _update_audio_path_label(self, path: str):
+        """Update the audio path label and the internal full path variable."""
+        self.update_path_display(self.file_path_label, path)
+        self.current_audio_file_full_path = path
+        # Update button state whenever audio path changes
+        self.start_btn.setEnabled(self.is_ready_to_process())
+        
+    def is_ready_to_process(self) -> bool:
+        """Check if all required inputs are ready for processing."""
+        return (bool(self.current_audio_file_full_path) and 
+                Path(self.current_audio_file_full_path).exists() and
+                bool(self.current_mapping_file_full_path) and 
+                Path(self.current_mapping_file_full_path).exists())
         
     def closeEvent(self, event):
         """Handle the window being closed."""
