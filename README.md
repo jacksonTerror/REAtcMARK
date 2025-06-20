@@ -8,6 +8,8 @@
 
 REAtcMARK is a desktop utility for macOS that analyzes pre-recorded audio files (WAV or MP3) containing SMPTE timecode and generates marker data **specifically for Reaper**. It streamlines the process of turning timecode into Reaper marker CSVs, setlists, and detailed reports for your sessions.
 
+**NEW in v1.1.0:** Full MP3 support! Now accepts both WAV and MP3 audio files with enhanced file selection and improved UI feedback.
+
 ---
 
 ## Features
@@ -17,6 +19,8 @@ REAtcMARK is a desktop utility for macOS that analyzes pre-recorded audio files 
 - Produces detailed detection report and setlist
 - Simple, guided UI for entering show metadata and selecting files
 - Supports importing and editing existing marker lists
+- **Enhanced file dialog with multiple format support (v1.1.0)**
+- **Improved button state management for better user feedback (v1.1.0)**
 
 
 ---
