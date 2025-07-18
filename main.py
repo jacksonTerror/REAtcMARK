@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                          QHBoxLayout, QPushButton, QLabel, QFileDialog,
                          QLineEdit, QMessageBox, QGroupBox, QFormLayout,
                          QDateEdit, QComboBox, QTextEdit, QTableWidgetItem,
-                         QCheckBox, QFrame)
+                         QCheckBox, QFrame, QSizePolicy, QSplashScreen)
 from PyQt6.QtCore import Qt, QDate, QTimer
 from PyQt6.QtGui import QPixmap, QFont, QPalette, QColor, QIcon
 import json
@@ -16,6 +16,7 @@ import platform
 from datetime import datetime
 import logging
 from typing import Optional
+import time
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -126,33 +127,37 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("REAtcMARK")
-        self.setMinimumWidth(740)  # Increased to fit new logo
-        
-        # Set dark theme colors
+        # Set a very compact default font for the app
+        font = QFont("Segoe UI", 8)
+        self.setFont(font)
+        self.setMinimumWidth(500)
+        # Set ultra-compact dark theme
         dark_palette = """
             QMainWindow, QWidget {
                 background: #2b2b2b;
                 color: #e0e0e0;
+                font-size: 8pt;
             }
             QGroupBox {
                 font-weight: bold;
                 border: 1px solid #404040;
-                border-radius: 6px;
-                margin-top: 1ex;
+                border-radius: 3px;
+                margin-top: 0.5ex;
                 color: #e0e0e0;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 3px;
+                left: 6px;
+                padding: 0 2px;
             }
             QLineEdit, QDateEdit, QComboBox {
                 background: #363636;
                 color: #e0e0e0;
                 border: 1px solid #404040;
-                border-radius: 4px;
-                padding: 5px;
-                min-height: 20px;
+                border-radius: 3px;
+                padding: 2px;
+                min-height: 14px;
+                font-size: 8pt;
             }
             QLineEdit:focus, QDateEdit:focus, QComboBox:focus {
                 border: 1px solid #5294e2;
@@ -165,9 +170,10 @@ class MainWindow(QMainWindow):
                 background: #363636;
                 color: #e0e0e0;
                 border: 1px solid #404040;
-                border-radius: 4px;
-                padding: 5px 15px;
-                min-height: 20px;
+                border-radius: 3px;
+                padding: 2px 6px;
+                min-height: 14px;
+                font-size: 8pt;
             }
             QPushButton:hover {
                 background: #404040;
@@ -179,25 +185,27 @@ class MainWindow(QMainWindow):
                 background: #363636;
                 color: #e0e0e0;
                 border: 1px solid #404040;
-                border-radius: 4px;
-                padding: 5px;
+                border-radius: 3px;
+                padding: 2px;
                 font-family: monospace;
+                font-size: 8pt;
             }
             QLabel {
                 color: #e0e0e0;
+                font-size: 8pt;
             }
             QComboBox::drop-down {
                 border: none;
-                width: 20px;
+                width: 12px;
             }
             QComboBox::down-arrow {
-                width: 8px;
-                height: 8px;
+                width: 6px;
+                height: 6px;
                 border: 2px solid #e0e0e0;
                 border-top: none;
                 border-right: none;
                 transform: rotate(-45deg);
-                margin-top: -3px;
+                margin-top: -1px;
             }
         """
         self.setStyleSheet(dark_palette)
@@ -212,29 +220,12 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setSpacing(16)
-        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.setSpacing(2)
+        main_layout.setContentsMargins(2, 2, 2, 2)
         
-        # Header with Logo
-        header_layout = QHBoxLayout()
-        logo_label = QLabel()
-        logo_path = resource_path("ReatcMarkLOGOheader.png")
-        if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path)
-            logo_label.setPixmap(pixmap)
-        else:
-            logo_label.setText("REAtcMARK") # Fallback text
-        
-        # Center the logo using stretchable spacers
-        header_layout.addStretch(1)
-        header_layout.addWidget(logo_label)
-        header_layout.addStretch(1)
-        
-        main_layout.addLayout(header_layout)
-
         # Metadata Group
         metadata_group = QGroupBox("Show Metadata")
-        metadata_layout = QFormLayout()
+        metadata_layout = QVBoxLayout()
         metadata_layout.setSpacing(12)
         metadata_layout.setContentsMargins(15, 15, 15, 15)
         metadata_group.setStyleSheet("""
@@ -251,55 +242,53 @@ class MainWindow(QMainWindow):
                 padding: 0 3px;
             }
         """)
-        
-        # Set fixed label width and alignment
-        metadata_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        metadata_layout.setHorizontalSpacing(20)  # Space between label and field
-        
-        # Create a widget to enforce minimum label column width
-        label_size_widget = QLabel()
-        label_size_widget.setFixedWidth(100)  # Fixed width for label column
-        metadata_layout.addRow(label_size_widget, QWidget())  # Hidden row to enforce width
-        label_size_widget.hide()  # Hide the dummy row
-        
-        # Date field (keep current width)
+        # Row: Date
+        date_row = QHBoxLayout()
+        date_label = QLabel("Date:")
+        date_label.setMinimumWidth(100)
         self.date_edit = QDateEdit()
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.dateChanged.connect(self.update_filename_preview)
-        self.date_edit.setFixedWidth(150)
-        date_label = QLabel("Date:")
-        date_label.setMinimumWidth(100)  # Consistent with label column width
-        metadata_layout.addRow(date_label, self.date_edit)
-        
-        # Artist field (required)
+        self.date_edit.setMinimumWidth(120)
+        self.date_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        date_row.addWidget(date_label)
+        date_row.addWidget(self.date_edit)
+        metadata_layout.addLayout(date_row)
+        # Row: Artist
+        artist_row = QHBoxLayout()
+        artist_label = QLabel("* Artist:")
+        artist_label.setMinimumWidth(100)
         self.band_edit = QLineEdit()
         self.band_edit.setPlaceholderText("Enter artist name")
         self.band_edit.textChanged.connect(self.update_filename_preview)
-        self.band_edit.setFixedWidth(350)  # Slightly wider for better text display
-        artist_label = QLabel("* Artist:")
-        artist_label.setMinimumWidth(100)  # Consistent with label column width
-        metadata_layout.addRow(artist_label, self.band_edit)
-        
-        # City field (required)
+        self.band_edit.setMinimumWidth(120)
+        self.band_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        artist_row.addWidget(artist_label)
+        artist_row.addWidget(self.band_edit)
+        metadata_layout.addLayout(artist_row)
+        # Row: City
+        city_row = QHBoxLayout()
+        city_label = QLabel("* City:")
+        city_label.setMinimumWidth(100)
         self.city_edit = QLineEdit()
         self.city_edit.setPlaceholderText("Enter city name")
         self.city_edit.textChanged.connect(self.update_filename_preview)
-        self.city_edit.setFixedWidth(350)  # Consistent with artist field
-        city_label = QLabel("* City:")
-        city_label.setMinimumWidth(100)  # Consistent with label column width
-        metadata_layout.addRow(city_label, self.city_edit)
-        
-        # Export folder selection
+        self.city_edit.setMinimumWidth(120)
+        self.city_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        city_row.addWidget(city_label)
+        city_row.addWidget(self.city_edit)
+        metadata_layout.addLayout(city_row)
+        # Row: Export Folder
+        export_row = QHBoxLayout()
+        export_label = QLabel("Export Folder:")
+        export_label.setMinimumWidth(100)
+        export_folder_container = QWidget()
         export_folder_layout = QVBoxLayout()
         export_folder_layout.setSpacing(8)
-        export_folder_layout.setContentsMargins(0, 0, 0, 0)  # Remove any extra margins
-        
-        # Create a container widget to hold the export folder contents
-        export_folder_container = QWidget()
-        export_folder_container.setFixedWidth(350)  # Match other fields width
-        
+        export_folder_layout.setContentsMargins(0, 0, 0, 0)
         self.export_folder_label = QLabel("Default (same as application)")
-        self.export_folder_label.setFixedWidth(350)  # Consistent with other fields
+        self.export_folder_label.setMinimumWidth(120)
+        self.export_folder_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.export_folder_label.setStyleSheet("""
             QLabel {
                 color: #a0a0a0;
@@ -310,33 +299,28 @@ class MainWindow(QMainWindow):
             }
         """)
         export_folder_layout.addWidget(self.export_folder_label)
-        
-        # Buttons row
         folder_buttons = QHBoxLayout()
         folder_buttons.setSpacing(8)
-        folder_buttons.setContentsMargins(0, 0, 0, 0)  # Remove any extra margins
-        
+        folder_buttons.setContentsMargins(0, 0, 0, 0)
         select_folder_btn = QPushButton("Select Folder")
         select_folder_btn.setMinimumWidth(100)
         select_folder_btn.clicked.connect(self.select_export_folder)
         folder_buttons.addWidget(select_folder_btn)
-        
         self.remember_folder_checkbox = QCheckBox("Remember this")
         folder_buttons.addWidget(self.remember_folder_checkbox)
         folder_buttons.addStretch()
-        
         export_folder_layout.addLayout(folder_buttons)
-        
         export_folder_container.setLayout(export_folder_layout)
-        
-        # Add to form layout with proper label
-        export_folder_label = QLabel("Export Folder:")
-        export_folder_label.setMinimumWidth(100)  # Consistent with label column width
-        metadata_layout.addRow(export_folder_label, export_folder_container)
-        
-        # Output Files preview
+        export_row.addWidget(export_label)
+        export_row.addWidget(export_folder_container)
+        metadata_layout.addLayout(export_row)
+        # Row: Output Files
+        output_row = QHBoxLayout()
+        output_files_label = QLabel("Output Files:")
+        output_files_label.setMinimumWidth(100)
         self.filename_preview = QLabel()
-        self.filename_preview.setFixedWidth(350)  # Consistent with other fields
+        self.filename_preview.setMinimumWidth(120)
+        self.filename_preview.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.filename_preview.setStyleSheet("""
             QLabel {
                 color: #a0a0a0;
@@ -346,44 +330,32 @@ class MainWindow(QMainWindow):
                 margin-top: 8px;
             }
         """)
-        output_files_label = QLabel("Output Files:")
-        output_files_label.setMinimumWidth(100)  # Consistent with label column width
-        metadata_layout.addRow(output_files_label, self.filename_preview)
-        
-        # Load/Save defaults
-        defaults_layout = QHBoxLayout()
-        defaults_layout.setSpacing(8)
-        defaults_layout.setContentsMargins(0, 8, 0, 0)  # Add top margin only
-        
-        # Create a container widget to hold the buttons
-        defaults_container = QWidget()
-        defaults_container.setFixedWidth(350)  # Match field width
-        
+        output_row.addWidget(output_files_label)
+        output_row.addWidget(self.filename_preview)
+        metadata_layout.addLayout(output_row)
+        # Row: Load/Save Defaults
+        defaults_row = QHBoxLayout()
+        defaults_label_spacer = QLabel("")
+        defaults_label_spacer.setMinimumWidth(100)
+        defaults_row.addWidget(defaults_label_spacer)
         load_defaults_btn = QPushButton("Load Defaults")
         load_defaults_btn.clicked.connect(self.load_defaults)
-        defaults_layout.addWidget(load_defaults_btn)
-        
         save_defaults_btn = QPushButton("Save as Defaults")
         save_defaults_btn.clicked.connect(self.save_defaults)
-        defaults_layout.addWidget(save_defaults_btn)
-        defaults_layout.addStretch()
-        
-        defaults_container.setLayout(defaults_layout)
-        
-        # Empty label to maintain column width
-        empty_label = QLabel("")
-        empty_label.setMinimumWidth(100)  # Consistent with label column width
-        metadata_layout.addRow(empty_label, defaults_container)
-        
-        # --- Style top section buttons (yellow/gold) ---
+        defaults_row.addWidget(load_defaults_btn)
+        defaults_row.addWidget(save_defaults_btn)
+        defaults_row.addStretch()
+        metadata_layout.addLayout(defaults_row)
+        # Style top section buttons (yellow/gold)
         yellow_btn_style = """
             QPushButton {
                 background: #FFD600;
                 color: #222;
                 border: none;
-                border-radius: 4px;
-                padding: 6px 18px;
+                border-radius: 3px;
+                padding: 2px 6px;
                 font-weight: bold;
+                font-size: 8pt;
             }
             QPushButton:hover {
                 background: #FFEA00;
@@ -392,11 +364,9 @@ class MainWindow(QMainWindow):
                 background: #FFC400;
             }
         """
-        # Apply to Select Folder, Load Defaults, Save as Defaults
         select_folder_btn.setStyleSheet(yellow_btn_style)
         load_defaults_btn.setStyleSheet(yellow_btn_style)
         save_defaults_btn.setStyleSheet(yellow_btn_style)
-
         metadata_group.setLayout(metadata_layout)
         main_layout.addWidget(metadata_group)
         
@@ -548,9 +518,10 @@ class MainWindow(QMainWindow):
                 background: #FF9800;
                 color: #222;
                 border: none;
-                border-radius: 4px;
-                padding: 6px 18px;
+                border-radius: 3px;
+                padding: 2px 6px;
                 font-weight: bold;
+                font-size: 8pt;
             }
             QPushButton:hover {
                 background: #FFB74D;
@@ -958,7 +929,7 @@ class MainWindow(QMainWindow):
         self.save_config()
         super().closeEvent(event)
         
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -966,6 +937,14 @@ if __name__ == '__main__':
     )
     
     app = QApplication(sys.argv)
+    logo_path = resource_path("ReatcMarkLOGOheader.png")
+    if os.path.exists(logo_path):
+        splash_pix = QPixmap(logo_path).scaledToHeight(200)
+        splash = QSplashScreen(splash_pix)
+        splash.show()
+        app.processEvents()
+        time.sleep(1.5)
+        splash.close()
     window = MainWindow()
     window.show()
     sys.exit(app.exec()) 

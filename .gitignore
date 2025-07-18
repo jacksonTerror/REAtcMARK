@@ -1,3 +1,37 @@
-TestAudio/2025.06.18_SMPTE-test.wav
-build/*.dmg
-devBuildFiles/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
+*.dylib
+
+# C extensions
+build/
+dist/
+*.egg-info/
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+*.spec
+
+# Executables
+*.exe
+*.app
+
+# Mac system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Logs
+*.log
+
+# Test output
+*.out
+
+# VSCode and IDE settings
+.vscode/
+.idea/
