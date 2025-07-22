@@ -35,3 +35,8 @@ Thumbs.db
 # VSCode and IDE settings
 .vscode/
 .idea/
+
+# build output
+build/
+dist/
+ffmpeg.exe
